@@ -1,5 +1,4 @@
 import sys
-from PyQt5 import QtGui
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QSizePolicy, QMessageBox, QWidget, \
     QPushButton, QGroupBox, QAction, QFileDialog
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -11,76 +10,34 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2
-
-##########################################
-## Do not forget to delete "return NotImplementedError"
-## while implementing a function
-########################################
+from PyQt5.uic import loadUi
+from PyQt5.QtCore import pyqtSlot
 
 class App(QMainWindow):
+
     def __init__(self):
         super(App, self).__init__()
-        #return NotImplementedError
+        loadUi('hist_matching.ui', self)
 
-        self.title = 'Histogram Equalization'
-        # You can define other things in here
-        self.top = 50
-        self.left = 50
-        self.width = 1300
-        self.height = 650
+        self.actionOpen_Input.triggered.connect(self.openInputImage)
+        self.actionOpen_Target.triggered.connect(self.openTargetImage)
+        self.actionExit.triggered.connect(self.exitApp)
 
-        self.setWindowIcon(QtGui.QIcon("icon.png"))
-        self.InitWindow()
-        self.initUI()
-
-    def InitWindow(self):
-            self.setWindowTitle(self.title)
-            self.setGeometry(self.top, self.left, self.width, self.height)
-            self.show()
 
     def openInputImage(self):
-        # This function is called when the user clicks File->Input Image.
-        return NotImplementedError
+        pixmap = QPixmap('color1.png')
+        self.img_input.setPixmap(pixmap)
 
     def openTargetImage(self):
-        # This function is called when the user clicks File->Target Image.
-        return NotImplementedError
+        pixmap = QPixmap('color2.png')
+        self.img_target.setPixmap(pixmap)
 
-    def initUI(self):
-        return NotImplementedError
-        # Write GUI initialization code
-
-        self.show()
-
-    def histogramButtonClicked(self):
-        if not self.inputLoaded and not self.targetLoaded:
-            # Error: "First load input and target images" in MessageBox
-            return NotImplementedError
-        if not self.inputLoaded:
-            # Error: "Load input image" in MessageBox
-            return NotImplementedError
-        elif not self.targetLoaded:
-            # Error: "Load target image" in MessageBox
-            return NotImplementedError
-
-    def calcHistogram(self, I):
-        # Calculate histogram
-        return NotImplementedError
-
-class PlotCanvas(FigureCanvas):
-    def __init__(self, hist, parent=None, width=5, height=4, dpi=100):
-        #return NotImplementedError
-        # Init Canvas
-        self.plotHistogram(hist)
-
-    def plotHistogram(self, hist):
-        return NotImplementedError
-        # Plot histogram
-
-        self.draw()
+    def exitApp(self):
+        sys.exit(0)
 
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    ex = App()
-    sys.exit(app.exec_())
+app = QApplication(sys.argv)
+form = App()
+form.show()
+app.exec()
+
