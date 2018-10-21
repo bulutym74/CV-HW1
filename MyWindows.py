@@ -1,20 +1,11 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QSizePolicy, QMessageBox, QWidget, \
-    QPushButton, QGroupBox, QAction, QFileDialog
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from PyQt5.QtWidgets import QGridLayout
-from PyQt5.QtWidgets import QLabel
-from PyQt5.QtGui import QPixmap, QImage
-from PyQt5.QtCore import Qt
-from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
+from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtGui import QPixmap
 import numpy as np
 import cv2
 from PyQt5.uic import loadUi
 from matplotlib import pyplot as plt
 from PIL import Image
-import histogram as h
-import cumulative_histogram as ch
 
 class App(QMainWindow):
 
@@ -25,7 +16,7 @@ class App(QMainWindow):
         self.actionOpen_Input.triggered.connect(self.openInputImage)
         self.actionOpen_Target.triggered.connect(self.openTargetImage)
         self.actionExit.triggered.connect(self.exitApp)
-        self.actionEqualize_Histogram.triggered.connect(self.plotHistogram)
+        self.actionEqualize_Histogram.triggered.connect(self.matchHistogram)
 
     def openInputImage(self):
         pixmap = QPixmap("color1.png")
@@ -47,17 +38,18 @@ class App(QMainWindow):
             return '#%02x%02x%02x' % (0, 0, blueVal)
 
         image = Image.open("color1.png")
-        image.putpixel((0, 1), (1, 1, 5))
+        image.putpixel((0, 1), (1, 1, 5))               #Modify the color of two pixels
         image.putpixel((0, 2), (2, 1, 5))
 
-        histogram = image.histogram()
+        histogram = image.histogram()                   #Get the color histogram of the image
 
-        l1 = histogram[0:256]
-        l2 = histogram[256:512]
-        l3 = histogram[512:768]
+        l1 = histogram[0:256]           #Red counts
+        l2 = histogram[256:512]         #Blue counts
+        l3 = histogram[512:768]         #Green counts
+
 
         for i in range(0, 256):
-            plt.bar(i, l1[i], color=getRed(i), edgecolor=getRed(i), alpha=0.3)
+            plt.bar(i, l1[i], color=getRed(i), edgecolor=getRed(i), alpha=0.3)              # R histogram
 
         plt.savefig("input_r.png")
         pixmap = QPixmap("input_r.png")
@@ -65,7 +57,7 @@ class App(QMainWindow):
         plt.close()
 
         for i in range(0, 256):
-            plt.bar(i, l2[i], color=getGreen(i), edgecolor=getGreen(i), alpha=0.3)
+            plt.bar(i, l2[i], color=getGreen(i), edgecolor=getGreen(i), alpha=0.3)          # G histogram
 
         plt.savefig("input_g.png")
         pixmap = QPixmap("input_g.png")
@@ -73,67 +65,13 @@ class App(QMainWindow):
         plt.close()
 
         for i in range(0, 256):
-            plt.bar(i, l3[i], color=getBlue(i), edgecolor=getBlue(i), alpha=0.3)
+            plt.bar(i, l3[i], color=getBlue(i), edgecolor=getBlue(i), alpha=0.3)            # B histogram
 
         plt.savefig("input_b.png")
         pixmap = QPixmap("input_b.png")
         self.hist_input_b.setPixmap(pixmap)
         plt.close()
 
-
-        # img = cv2.imread("color1.png")
-        # plt.close()
-        # color = ('b', 'g', 'r')
-        # for channel, col in enumerate(color):
-        #     histr = cv2.calcHist([img], [channel], None, [256], [0, 256])
-        #     plt.plot(histr, color=col)
-        #     plt.xlim([0, 256])
-        # plt.savefig("input_r.png")
-        # pixmap = QPixmap("input_r.png")
-        # self.hist_input_r.setPixmap(pixmap)
-        #
-        # img = cv2.imread("color1.png")
-        # plt.close()
-        # color = ('b', 'g', 'r')
-        # for channel, col in enumerate(color):
-        #     histr = cv2.calcHist([img], [channel], None, [256], [0, 256])
-        #     plt.plot(histr, color=col)
-        #     plt.xlim([0, 256])
-        # plt.savefig("input_g.png")
-        # pixmap = QPixmap("input_g.png")
-        # self.hist_input_g.setPixmap(pixmap)
-        #
-        # img = cv2.imread("color1.png")
-        # plt.close()
-        # color = ('b', 'g', 'r')
-        # for channel, col in enumerate(color):
-        #     histr = cv2.calcHist([img], [channel], None, [256], [0, 256])
-        #     plt.plot(histr, color=col)
-        #     plt.xlim([0, 256])
-        # plt.savefig("input_b.png")
-        # pixmap = QPixmap("input_b.png")
-        # self.hist_input_b.setPixmap(pixmap)
-
-        # img = cv2.imread("color1.png")
-        # b, g, r = cv2.split(img)
-        #
-        # plt.close()
-        # plt.hist(b.ravel(), 256, [0, 256])
-        # plt.savefig("input_r.png")
-        # pixmap = QPixmap("input_r.png")
-        # self.hist_input_r.setPixmap(pixmap)
-        #
-        # plt.close()
-        # plt.hist(g.ravel(), 256, [0, 256])
-        # plt.savefig("input_g.png")
-        # pixmap = QPixmap("input_g.png")
-        # self.hist_input_g.setPixmap(pixmap)
-        #
-        # plt.close()
-        # plt.hist(r.ravel(), 256, [0, 256])
-        # plt.savefig("input_b.png")
-        # pixmap = QPixmap("input_b.png")
-        # self.hist_input_b.setPixmap(pixmap)
 
     def openTargetImage(self):
         pixmap = QPixmap("color2.png")
@@ -155,17 +93,17 @@ class App(QMainWindow):
             return '#%02x%02x%02x' % (0, 0, blueVal)
 
         image = Image.open("color2.png")
-        image.putpixel((0, 1), (1, 1, 5))
+        image.putpixel((0, 1), (1, 1, 5))       #Modify the color of two pixels
         image.putpixel((0, 2), (2, 1, 5))
 
-        histogram = image.histogram()
+        histogram = image.histogram()       #Get the color histogram of the image
 
-        l1 = histogram[0:256]
-        l2 = histogram[256:512]
-        l3 = histogram[512:768]
+        l1 = histogram[0:256]           #Red counts
+        l2 = histogram[256:512]         #Blue counts
+        l3 = histogram[512:768]         #Green counts
 
         for i in range(0, 256):
-            plt.bar(i, l1[i], color=getRed(i), edgecolor=getRed(i), alpha=0.3)
+            plt.bar(i, l1[i], color=getRed(i), edgecolor=getRed(i), alpha=0.3)     # R histogram
 
         plt.savefig("target_r.png")
         pixmap = QPixmap("target_r.png")
@@ -173,7 +111,7 @@ class App(QMainWindow):
         plt.close()
 
         for i in range(0, 256):
-            plt.bar(i, l2[i], color=getGreen(i), edgecolor=getGreen(i), alpha=0.3)
+            plt.bar(i, l2[i], color=getGreen(i), edgecolor=getGreen(i), alpha=0.3)  # G histogram
 
         plt.savefig("target_g.png")
         pixmap = QPixmap("target_g.png")
@@ -181,78 +119,104 @@ class App(QMainWindow):
         plt.close()
 
         for i in range(0, 256):
-            plt.bar(i, l3[i], color=getBlue(i), edgecolor=getBlue(i), alpha=0.3)
+            plt.bar(i, l3[i], color=getBlue(i), edgecolor=getBlue(i), alpha=0.3)    # B histogram
 
         plt.savefig("target_b.png")
         pixmap = QPixmap("target_b.png")
         self.hist_target_b.setPixmap(pixmap)
         plt.close()
 
-        # plt.close()
-        # img = cv2.imread("color2.png")
-        # color = ('b', 'g', 'r')
-        # for channel, col in enumerate(color):
-        #     histr = cv2.calcHist([img], [channel], None, [256], [0, 256])
-        #     plt.plot(histr, color=col)
-        #     plt.xlim([0, 256])
-        #
-        # plt.title("Histogram of TARGET image")
-        #
-        # plt.savefig("test.png")
-        # plt.show()
 
     def exitApp(self):
         sys.exit(0)
 
-    def plotHistogram(self):
-        img = cv2.imread('color1.png', cv2.IMREAD_GRAYSCALE)
-        img_ref = cv2.imread('color2.png', cv2.IMREAD_GRAYSCALE)
+    def matchHistogram(self):
 
-        height = img.shape[0]
-        width = img.shape[1]
-        pixels = width * height
+        def zeros(dict):
+            for i in range(256):
+                dict[i] = 0
+            return dict
 
-        height_ref = img_ref.shape[0]
-        width_ref = img_ref.shape[1]
-        pixels_ref = width_ref * height_ref
+        def frequency(channel, dict):
+            dictionary = zeros(dict)
+            rows = channel.shape[0]
+            cols = channel.shape[1]
+            for i in range(rows):
+                for j in range(cols):
+                    dictionary[channel[i, j]] += 1
 
-        hist = h.histogram(img)
-        hist_ref = h.histogram(img_ref)
+            return dictionary
 
-        cum_hist = ch.cumulative_histogram(hist)
-        cum_hist_ref = ch.cumulative_histogram(hist_ref)
+        def color(name):
 
-        prob_cum_hist = cum_hist / pixels
+            color = cv2.imread(name)
 
-        prob_cum_hist_ref = cum_hist_ref / pixels_ref
+            blue, green, red = cv2.split(color)
+            size = color.size / 3
 
-        K = 256
-        new_values = np.zeros((K))
+            blue_dict = {}
+            green_dict = {}
+            red_dict = {}
 
-        for a in np.arange(K):
-            j = K - 1
-            while True:
-                new_values[a] = j
-                j = j - 1
-                if j < 0 or prob_cum_hist[a] > prob_cum_hist_ref[j]:
-                    break
+            blue_dict = frequency(blue, blue_dict)
+            green_dict = frequency(green, green_dict)
+            red_dict = frequency(red, red_dict)
 
-        for i in np.arange(height):
-            for j in np.arange(width):
-                a = img.item(i, j)
-                b = new_values[a]
-                img.itemset((i, j), b)
+            blue_array = np.asarray(list(blue_dict.values()))
+            green_array = np.asarray(list(green_dict.values()))
+            red_array = np.asarray(list(red_dict.values()))
 
-        # img.savefig("result.png")
+            blue_array = np.cumsum(blue_array)
+            green_array = np.cumsum(green_array)
+            red_array = np.cumsum(red_array)
+
+            blue_array = blue_array / size
+            green_array = green_array / size
+            red_array = red_array / size
+
+            liste = []
+            liste.append(blue_array)
+            liste.append(green_array)
+            liste.append(red_array)
+            return liste
+
+        def matching(img1, img2):
+            table = [0] * 256
+            j = 0
+            for i in range(255):
+                while j < 255 and img1[j + 1] < img1[i + 1]:
+                    j += 1
+                table[i + 1] = j
+
+            return table
+
+        def LUT(color1, table_b, table_g, table_r):
+            blue, green, red = cv2.split(color1)
+            rows, cols, channel = color1.shape
+
+            for i in range(rows):
+                for j in range(cols):
+                    blue[i, j] = table_b[blue[i, j]]
+                    green[i, j] = table_g[green[i, j]]
+                    red[i, j] = table_r[red[i, j]]
+
+            return cv2.merge((blue, green, red))
+
+        name1 = "color1.png"
+        name2 = "color2.png"
+        image = cv2.imread(name1)
+
+        l1 = color(name1)
+        l2 = color(name2)
+
+        table_b = matching(l1[0], l2[0])
+        table_g = matching(l1[1], l2[1])
+        table_r = matching(l1[2], l2[2])
+
+        img = LUT(image, table_b, table_g, table_r)
         cv2.imwrite("result.png", img)
         pixmap = QPixmap("result.png")
         self.img_result.setPixmap(pixmap)
-
-        # cv2.imwrite('images/hist_matched.jpg', img)
-        #
-        # cv2.imshow('image', img)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
         self.calcHistogramResult()
 
 
@@ -271,17 +235,17 @@ class App(QMainWindow):
             return '#%02x%02x%02x' % (0, 0, blueVal)
 
         image = Image.open("result.png")
-        image.putpixel((0, 1), (1, 1, 5))
+        image.putpixel((0, 1), (1, 1, 5))               #Modify the color of two pixels
         image.putpixel((0, 2), (2, 1, 5))
 
-        histogram = image.histogram()
+        histogram = image.histogram()                   #Get the color histogram of the image
 
-        l1 = histogram[0:256]
-        l2 = histogram[256:512]
-        l3 = histogram[512:768]
+        l1 = histogram[0:256]  # Red counts
+        l2 = histogram[256:512]  # Blue counts
+        l3 = histogram[512:768]  # Green counts
 
         for i in range(0, 256):
-            plt.bar(i, l1[i], color=getRed(i), edgecolor=getRed(i), alpha=0.3)
+            plt.bar(i, l1[i], color=getRed(i), edgecolor=getRed(i), alpha=0.3)          # R histogram
 
         plt.savefig("result_r.png")
         pixmap = QPixmap("result_r.png")
@@ -289,7 +253,7 @@ class App(QMainWindow):
         plt.close()
 
         for i in range(0, 256):
-            plt.bar(i, l2[i], color=getGreen(i), edgecolor=getGreen(i), alpha=0.3)
+            plt.bar(i, l2[i], color=getGreen(i), edgecolor=getGreen(i), alpha=0.3)      # G histogram
 
         plt.savefig("result_g.png")
         pixmap = QPixmap("result_g.png")
@@ -297,7 +261,7 @@ class App(QMainWindow):
         plt.close()
 
         for i in range(0, 256):
-            plt.bar(i, l3[i], color=getBlue(i), edgecolor=getBlue(i), alpha=0.3)
+            plt.bar(i, l3[i], color=getBlue(i), edgecolor=getBlue(i), alpha=0.3)        # B histogram
 
         plt.savefig("result_b.png")
         pixmap = QPixmap("result_b.png")
