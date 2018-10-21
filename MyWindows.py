@@ -184,7 +184,7 @@ class App(QMainWindow):
             table = [0] * 256
             j = 0
             for i in range(255):
-                while j < 255 and img1[j + 1] < img1[i + 1]:
+                while j < 255 and img2[j + 1] < img1[i + 1]:
                     j += 1
                 table[i + 1] = j
 
